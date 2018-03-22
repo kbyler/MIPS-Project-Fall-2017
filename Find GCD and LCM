@@ -1,0 +1,152 @@
+.data
+
+str1: .asciiz "Please, enter the first integer: "
+str2: .asciiz "Please, enter the second integer: "
+str3: .asciiz "The greatest common divisor of n1 and n2 is "
+str4: .asciiz "\nThe least common multiple of n1 and n2 is "
+newline: .asciiz "\n"
+
+.globl main
+.text
+
+############################################################
+
+# Prompt user to enter n1 and n2
+
+# Store n1 and n2 into $s0-$s1 and $t1-$t2
+
+
+############################################################
+main:
+la $a0, str1            # load address for str1 statement           
+li $v0, 4               # load I/O for string output              
+syscall                 # print str1 statement                
+
+li $v0, 5               # load I/O code for integer input         
+syscall                 # input integer n1 into $v0
+add $a1, $v0, $zero     # store n1 in $a1    
+
+la $a0, str2            #load address for str1 statement               
+li $v0, 4               #load I/O for string output              
+syscall                 #print str2 statement               
+
+li $v0, 5               # load I/O code for integer input
+syscall                 # input integer n2 into $v0
+add $a2, $v0, $zero     # store n2 in $a2
+
+# Keep n1 and n2 constant
+add $s0, $a1, $zero     # store n1 into s0
+add $s1, $a2, $zero     # store n2 into a1
+
+# Create temporary n1 & n2 for calculations
+add $t1, $s0, $zero     # t1 = n1
+add $t2, $s1, $zero     # t2 = n2
+
+
+############################################################
+
+# Range: [0, 255]
+# Branch to beginning of main if there are range errors
+
+############################################################
+
+
+#n1 or n2 is negative
+bltz $t1, main
+bltz $t2, main
+
+#n1 or n2 is greater than 255
+slt $t7, $t1, 256
+slt $t6, $t2, 256
+
+beq $t7, $zero, main
+beq $t6, $zero, main
+
+#n1 and n2 are zero
+add $s4, $s1, $s0
+beq $s4, $zero, main
+
+
+############################################################
+
+#Finding the GCD and LCM
+
+############################################################
+
+
+# Euclid's GCD Algorithm
+euclidgcd:
+div $t1, $t2           # n1/n2 yields: remainder -> hi, quotient -> lo
+mfhi $s2               # pull out remainder
+ 
+bne $s2, 0, rec        # if remainder is > 0, jump to rec
+beq $s2, 0, euclidlcm  # if remainder = 0, jump to euclidlcm
+
+rec:
+add $t1, $t2, $zero    # swap n1 for n2
+add $t2, $s2, $zero    # a2 = remainder
+add $s3, $s2, $zero    # hold onto remainder
+bne $s2, 0, euclidgcd  # loop to euclidgcd if remainder != 0  
+
+# Euclid's LCM Algorithm
+# (n1*n2)/(gcd of n1 & n2)
+euclidlcm:
+beq $s3, 0, switchr    # switch s3 for t2 if s3 = 0
+mul $s7, $s0, $s1      # (n1*n2)
+div $s7, $s3           # (n1*n2)/(gcd of n1 & n2)
+mflo $s6               # lcm - > lo 
+
+switchr:               # find lcm if s3 = 0
+add $s3, $t2, $zero
+mul $s7, $s0, $s1
+div $s7, $s3
+mflo $s6
+
+
+############################################################
+
+#Print statements
+
+############################################################
+
+
+print:
+la $a0, str3            # load address for str3 statement
+li $v0, 4               # load I/O for output          
+syscall                 # print str4 statement               
+
+li $v0, 1               # load I/O for output           
+add $a0, $s3, $zero     # load gcd for output   
+syscall                 # print gcd                
+
+la $a0, str4            # load address for str4 statement           
+li $v0, 4               # load I/O for string output               
+syscall                 # print str4 statement                
+
+li $v0, 1               # load I/O for integer output           
+add $a0, $s6, $zero     # load lcm output   
+syscall                 # print lcm              
+
+la $a0, newline         # load address for /n
+li $v0, 4               # load I/O for output                 
+syscall                 # print /n             
+
+
+############################################################
+
+#Exit the Program
+
+############################################################
+
+
+li $v0, 10             # load termination              
+syscall                # terminate program               
+
+
+
+
+   
+
+
+
+
