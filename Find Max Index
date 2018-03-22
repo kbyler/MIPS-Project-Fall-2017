@@ -1,0 +1,57 @@
+
+.data
+
+KEY: .asciiz "max index, max value \n"
+COMMA: .asciiz ", "
+array: .word 12, 11, 9, 10, 8, 7, 6, 5, 44, 3, 2, 1
+
+.text
+.globl main
+
+main:
+
+la $s7, array #array address
+addi $s6, $zero, 12 #array size
+move $s5, $zero #i
+move $s4, $zero #register with max value
+li $s3, -1 #max index
+
+
+loop:
+
+sll $t0, $s5, 2 #Shift register by 2^2= 4.. line yields 4i 
+add $t0, $t0, $s7 #Update address of array w/ 4i + $s7
+lw $t1, 0($t0) #$t1 holds new address for array[i]
+
+slt $t2, $t1, $s4 #Compare max and array[i]
+bgtz $t2, notmax #If s4 is max continue, else go to NOTMAX
+
+move $s4, $t1 #Update max value
+move $s3, $s5 #Update index for max value 
+
+notmax:
+
+addi $s5, $s5, 1 #Increment i
+bne $s6, $s5, loop #i++ until i == 12
+
+
+done:
+
+la $a0, KEY
+li $v0, 4
+syscall
+
+move $a0, $s3 #Print max index
+li $v0, 1
+syscall
+
+la $a0, COMMA
+li $v0, 4
+syscall
+
+move $a0, $s4 #Print max value
+li $v0, 1
+syscall
+
+li $v0, 10 #Exit
+syscall
